@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorite Things</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .post-form, .admin-form {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .post-card {
+            background: white;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+        .post-card:hover {
+            transform: translateY(-5px);
+        }
+        .post-card h3 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+        .post-card p {
+            margin: 10px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+        .commentator {
+            font-style: italic;
+            color: #777;
+            margin-top: 10px;
+        }
+        input, textarea, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: 'Georgia', serif;
+        }
+        textarea {
+            height: 100px;
+        }
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #c0392b;
+        }
+        .delete-btn {
+            background-color: #7f8c8d;
+        }
+        .delete-btn:hover {
+            background-color: #6c7a89;
+        }
+        .error {
+            color: #e74c3c;
+            display: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Favorites Ranking System</h1>
+    
+    <!-- Post Form -->
+    <div class="post-form">
+        <h2>Rank Your Favorite Thing</h2>
+        <input type="text" id="commentatorName" placeholder="Your Name" required>
+        <input type="text" id="thingName" placeholder="Favorite Thing" required>
+        <textarea id="reason" placeholder="Why it's your favorite" required></textarea>
+        <button onclick="addPost()">Submit</button>
+    </div>
+
+    <!-- Admin Delete Form -->
+    <div class="admin-form">
+        <h2>Admin: Remove Post</h2>
+        <input type="password" id="adminPassword" placeholder="Admin Password" required>
+        <button onclick="showDeleteButtons()">Verify Password</button>
+        <p id="passwordError" class="error">Incorrect password</p>
+    </div>
+
+    <!-- Posts Container -->
+    <div id="postsContainer"></div>
+
+    <script>
+        const password = 'admin123'; // Simple password
+        let posts = JSON.parse(localStorage.getItem('favoriteThings')) || [];
+
+        // Load posts on page load
+        window.onload = displayPosts;
+
+        function addPost() {
+            const commentatorName = document.getElementById('commentatorName').value.trim();
+            const thingName = document.getElementById('thingName').value.trim();
+            const reason = document.getElementById('reason').value.trim();
+
+            if (commentatorName && thingName && reason) {
+                const post = {
+                    id: Date.now(),
+                    commentatorName,
+                    thingName,
+                    reason,
+                    date: new Date().toLocaleString()
+                };
+                posts.push(post);
+                localStorage.setItem('favoriteThings', JSON.stringify(posts));
+                displayPosts();
+                document.getElementById('commentatorName').value = '';
+                document.getElementById('thingName').value = '';
+                document.getElementById('reason').value = '';
+            }
+        }
+
+        function displayPosts() {
+            const container = document.getElementById('postsContainer');
+            container.innerHTML = '';
+            posts.forEach(post => {
+                const postCard = document.createElement('div');
+                postCard.className = 'post-card';
+                postCard.innerHTML = `
+                    <h3>${post.thingName}</h3>
+                    <p>${post.reason}</p>
+                    <p class="commentator">By ${post.commentatorName}</p>
+                    <p><small>Posted on: ${post.date}</small></p>
+                    <button class="delete-btn" style="display: none;" onclick="deletePost(${post.id})">Delete</button>
+                `;
+                container.appendChild(postCard);
+            });
+        }
+
+        function showDeleteButtons() {
+            const inputPassword = document.getElementById('adminPassword').value;
+            
+            if (inputPassword === password) {
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.style.display = 'block';
+                });
+                document.getElementById('passwordError').style.display = 'none';
+            } else {
+                document.getElementById('passwordError').style.display = 'block';
+            }
+        }
+
+        function deletePost(id) {
+            posts = posts.filter(post => post.id !== id);
+            localStorage.setItem('favoriteThings', JSON.stringify(posts));
+            displayPosts();
+        }
+    </script>
+</body>
+</html>
